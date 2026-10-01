@@ -497,27 +497,78 @@ jobs:
 
           echo "OK: iOS deployment target 15.0."
 
+      # ==========================================================
+      # 10.1 CORRIGIR INCLUDE PATH DO GODOT 4
+      # ==========================================================
 
-      # ==========================================================
-      # 11.   GERAR HEADERS GODOT
-      # ==========================================================
-      - name: Inspect Godot C++ headers
+      - name: Fix Godot 4 include path
         shell: bash
         run: |
+
           cd godot-ios-plugins
-      
-          echo "===== godot_cpp directories ====="
-          find . \
-            -type d \
-            -name "godot_cpp" \
-            -print
-      
+
+          echo "======================================"
+          echo "CURRENT SCONSTRUCT HEADER PATH"
+          echo "======================================"
+
+          sed -n '145,165p' SConstruct
+
           echo ""
-          echo "===== object.hpp ====="
-          find . \
-            -name "object.hpp" \
-            -print
-      
+          echo "======================================"
+          echo "FIXING GODOT 4 INCLUDE PATH"
+          echo "======================================"
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path("SConstruct")
+          text = path.read_text()
+
+          old = """else:
+           env.Append(CPPPATH=[  '.', 'godot',  'godot/platform/ios', ])"""
+  
+          new = """else:
+            env.Append(CPPPATH=[ '.', 'godot',  'godot/platform/iphone',])"""
+  
+          if old not in text:
+                print("ERROR: Expected Godot 4 CPPPATH block not found.")
+                raise SystemExit(1)
+  
+            text = text.replace(old, new, 1)
+    
+            path.write_text(text)
+    
+            print("OK: Godot 4 CPPPATH corrected.")
+            PY
+  
+            echo ""
+            echo "======================================"
+            echo "VERIFY CORRECTION"
+            echo "======================================"
+  
+            sed -n '145,165p' SConstruct
+        
+            
+          # ==========================================================
+          # 11.   GERAR HEADERS GODOT
+          # ==========================================================
+          - name: Inspect Godot C++ headers
+            shell: bash
+            run: |
+              cd godot-ios-plugins
+          
+              echo "===== godot_cpp directories ====="
+              find . \
+                -type d \
+                -name "godot_cpp" \
+                -print
+          
+              echo ""
+              echo "===== object.hpp ====="
+              find . \
+                -name "object.hpp" \
+                -print
+          
           echo ""
           echo "===== PhotoPicker source ====="
           find plugins/photo_picker \
@@ -644,7 +695,7 @@ jobs:
             arch=arm64 \
             plugin=video_exporter \
             version=4.0 \
-            ios_deployment_target=15.0
+            ios_deployment_target=15.0 \
             custom_cppflags="-Igodot/platform/iphone"
 
 
