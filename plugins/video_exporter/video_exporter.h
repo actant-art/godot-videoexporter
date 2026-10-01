@@ -1,11 +1,8 @@
 #ifndef VIDEO_EXPORTER_H
 #define VIDEO_EXPORTER_H
 
-#include <godot_cpp/classes/object.hpp>
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/variant/string.hpp>
-
-using namespace godot;
+#include "core/object.h"
+#include "core/ustring.h"
 
 class VideoExporter : public Object {
 	GDCLASS(VideoExporter, Object);
