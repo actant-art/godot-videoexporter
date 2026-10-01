@@ -502,13 +502,14 @@ jobs:
       # 11. GERAR HEADERS GODOT
       # ==========================================================
 
+
       - name: Build Godot iOS headers
         run: |
           cd godot-ios-plugins/godot
 
           scons \
             platform=ios \
-            target=editor \
+            target=debug \
             ios_deployment_target=15.0
 
 
