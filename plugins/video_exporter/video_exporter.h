@@ -1,19 +1,23 @@
 #ifndef VIDEO_EXPORTER_H
 #define VIDEO_EXPORTER_H
 
-#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/string.hpp>
 
 using namespace godot;
 
-class VideoExporter : public RefCounted {
-	GDCLASS(VideoExporter, RefCounted);
+class VideoExporter : public Object {
+	GDCLASS(VideoExporter, Object);
+
+	static VideoExporter *singleton;
 
 protected:
 	static void _bind_methods();
 
 public:
+	static VideoExporter *get_singleton();
+
 	VideoExporter();
 	~VideoExporter();
 
