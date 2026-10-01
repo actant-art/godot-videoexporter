@@ -2,10 +2,9 @@
 
 #include "video_exporter.h"
 
-#include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/core/memory.hpp>
-#include <godot_cpp/variant/string.hpp>
+#include "core/engine.h"
+#include "core/class_db.h"
+#include "core/os/memory.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -15,9 +14,6 @@
 #import <UIKit/UIKit.h>
 
 #import <dispatch/dispatch.h>
-
-using namespace godot;
-
 
 /*************************************************************************/
 /* Singleton                                                             */
