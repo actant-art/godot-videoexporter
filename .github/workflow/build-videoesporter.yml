@@ -1179,9 +1179,6 @@ jobs:
 
         with:
           name: VideoExporter-Godot-4.6.3
-
           path: VideoExporter-Godot-4.6.3.zip
-
           if-no-files-found: error
-
           retention-days: 30
