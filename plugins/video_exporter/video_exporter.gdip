@@ -1,0 +1,21 @@
+[config]
+
+name="VideoExporter"
+binary="video_exporter.xcframework"
+
+initialization="godot_video_exporter_init"
+deinitialization="godot_video_exporter_deinit"
+
+[dependencies]
+
+linked=[]
+embedded=[]
+system=[
+	"AVFoundation.framework",
+	"CoreGraphics.framework",
+	"CoreMedia.framework",
+	"CoreVideo.framework",
+	"UIKit.framework"
+]
+capabilities=[]
+files=[]
