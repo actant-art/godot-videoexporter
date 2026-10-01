@@ -501,7 +501,38 @@ jobs:
       # ==========================================================
       # 11.  Foi excluído : GERAR HEADERS GODOT
       # ==========================================================
-
+      - name: Inspect Godot C++ headers
+        shell: bash
+        run: |
+          cd godot-ios-plugins
+      
+          echo "===== godot_cpp directories ====="
+          find . \
+            -type d \
+            -name "godot_cpp" \
+            -print
+      
+          echo ""
+          echo "===== object.hpp ====="
+          find . \
+            -name "object.hpp" \
+            -print
+      
+          echo ""
+          echo "===== PhotoPicker source ====="
+          find plugins/photo_picker \
+            -maxdepth 2 \
+            -type f \
+            -print \
+            || true
+      
+          echo ""
+          echo "===== PhotoPicker includes ====="
+          grep -R \
+            -n \
+            '^#include' \
+            plugins/photo_picker \
+            || true
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
       # ==========================================================
