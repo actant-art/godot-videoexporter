@@ -565,6 +565,25 @@ jobs:
       
           echo "===== register_singleton ====="
           grep -R "register_singleton" godot/core/engine.h godot/core 2>/dev/null | head -20
+
+      - name: Inspect Godot registration APIs
+        run: |
+          cd godot-ios-plugins
+      
+          echo "===== GDREGISTER_CLASS ====="
+          grep -R -n "GDREGISTER_CLASS" godot 2>/dev/null | head -20
+      
+          echo "===== memnew ====="
+          grep -R -n "memnew" godot/core/object godot/core/os 2>/dev/null | head -20
+      
+          echo "===== memdelete ====="
+          grep -R -n "memdelete" godot/core/object godot/core/os 2>/dev/null | head -20
+      
+          echo "===== register_singleton declaration ====="
+          grep -n -A5 -B5 "register_singleton" godot/core/engine.h
+      
+          echo "===== unregister_singleton declaration ====="
+          grep -n -A5 -B5 "unregister_singleton" godot/core/engine.h
             
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
