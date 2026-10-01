@@ -497,6 +497,8 @@ jobs:
 
           echo "OK: iOS deployment target 15.0."
 
+
+
       # ==========================================================
       # 10.1 CORRIGIR INCLUDE PATH DO GODOT 4
       # ==========================================================
@@ -524,30 +526,28 @@ jobs:
           path = Path("SConstruct")
           text = path.read_text()
 
-          old = """else:
-           env.Append(CPPPATH=[  '.', 'godot',  'godot/platform/ios', ])"""
-  
-          new = """else:
-            env.Append(CPPPATH=[ '.', 'godot',  'godot/platform/iphone',])"""
-  
+          old = "else:\n       env.Append(CPPPATH=[\n        '.',\n        'godot',\n        'godot/platform/ios',\n    ])"
+
+          new = "else:\n    env.Append(CPPPATH=[\n        '.',\n        'godot',\n        'godot/platform/iphone',\n    ])"
+
           if old not in text:
-                print("ERROR: Expected Godot 4 CPPPATH block not found.")
-                raise SystemExit(1)
-  
-            text = text.replace(old, new, 1)
+              print("ERROR: Expected Godot 4 CPPPATH block not found.")
+              raise SystemExit(1)
+
+          text = text.replace(old, new, 1)
+
+          path.write_text(text)
+
+          print("OK: Godot 4 CPPPATH corrected.")
+          PY
+
+          echo ""
+          echo "======================================"
+          echo "VERIFY CORRECTION"
+          echo "======================================"
+
+          sed -n '145,165p' SConstruct
     
-            path.write_text(text)
-    
-            print("OK: Godot 4 CPPPATH corrected.")
-            PY
-  
-            echo ""
-            echo "======================================"
-            echo "VERIFY CORRECTION"
-            echo "======================================"
-  
-            sed -n '145,165p' SConstruct
-        
             
           # ==========================================================
           # 11.   GERAR HEADERS GODOT
