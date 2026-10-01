@@ -604,6 +604,22 @@ jobs:
       
           echo "===== generated headers ====="
           find . -type d \( -name "generated" -o -name "gen" \) -print | head -30
+
+      - name: Inspect SCons include paths
+        run: |
+          cd godot-ios-plugins
+      
+          echo "===== CPPFLAGS ====="
+          grep -R -n "CPPFLAGS" SConstruct SCons* 2>/dev/null | head -50 || true
+      
+          echo "===== CPPPATH ====="
+          grep -R -n "CPPPATH" SConstruct SCons* 2>/dev/null | head -50 || true
+      
+          echo "===== platform/iphone references ====="
+          grep -R -n "platform/iphone" SConstruct SCons* 2>/dev/null | head -50 || true
+      
+          echo "===== platform/ios references ====="
+          grep -R -n "platform/ios" SConstruct SCons* 2>/dev/null | head -50 || true
             
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
@@ -620,6 +636,7 @@ jobs:
             plugin=video_exporter \
             version=4.0 \
             ios_deployment_target=15.0
+            custom_cppflags="-Igodot/platform/iphone"
 
 
       # ==========================================================
