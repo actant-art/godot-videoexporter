@@ -14,6 +14,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+#import <dispatch/dispatch.h>
 
 using namespace godot;
 
@@ -67,6 +68,12 @@ void VideoExporter::_bind_methods() {
 /* UIImage -> CVPixelBuffer                                               */
 /*************************************************************************/
 
+/*
+ * Converte um CGImage em um CVPixelBuffer BGRA.
+ *
+ * O AVAssetWriterInputPixelBufferAdaptor receberá esses buffers
+ * para codificação H.264.
+ */
 static CVPixelBufferRef create_pixel_buffer_from_image(
 		CGImageRef image,
 		size_t width,
@@ -87,7 +94,9 @@ static CVPixelBufferRef create_pixel_buffer_from_image(
 			(__bridge CFDictionaryRef)attributes,
 			&pixel_buffer);
 
-	if (result != kCVReturnSuccess || pixel_buffer == nullptr) {
+	if (result != kCVReturnSuccess ||
+			pixel_buffer == nullptr) {
+
 		return nullptr;
 	}
 
@@ -116,6 +125,7 @@ static CVPixelBufferRef create_pixel_buffer_from_image(
 							kCGImageAlphaPremultipliedFirst);
 
 	if (context == nullptr) {
+
 		CGColorSpaceRelease(color_space);
 
 		CVPixelBufferUnlockBaseAddress(
@@ -129,6 +139,10 @@ static CVPixelBufferRef create_pixel_buffer_from_image(
 
 	/*
 	 * Corrige a orientação vertical do CoreGraphics.
+	 *
+	 * CGImage e CGContext possuem sistemas de coordenadas
+	 * diferentes. Sem esta transformação, os frames podem
+	 * aparecer verticalmente invertidos no vídeo.
 	 */
 	CGContextTranslateCTM(
 			context,
@@ -170,7 +184,12 @@ bool VideoExporter::export_frames(
 		const String &output_path,
 		int fps) {
 
+	/*************************************************************************/
+	/* Validate parameters                                                   */
+	/*************************************************************************/
+
 	if (frames_directory.is_empty()) {
+
 		ERR_PRINT(
 				"VideoExporter: frames directory is empty.");
 
@@ -178,6 +197,7 @@ bool VideoExporter::export_frames(
 	}
 
 	if (output_path.is_empty()) {
+
 		ERR_PRINT(
 				"VideoExporter: output path is empty.");
 
@@ -185,6 +205,7 @@ bool VideoExporter::export_frames(
 	}
 
 	if (fps <= 0) {
+
 		ERR_PRINT(
 				"VideoExporter: invalid FPS.");
 
@@ -204,7 +225,9 @@ bool VideoExporter::export_frames(
 			[NSString stringWithUTF8String:
 					output_path.utf8().get_data()];
 
-	if (frames_path == nil || output_file == nil) {
+	if (frames_path == nil ||
+			output_file == nil) {
+
 		ERR_PRINT(
 				"VideoExporter: invalid UTF-8 path.");
 
@@ -223,10 +246,13 @@ bool VideoExporter::export_frames(
 
 	BOOL exists =
 			[file_manager
-					fileExistsAtPath:frames_path
-					isDirectory:&is_directory];
+					fileExistsAtPath:
+							frames_path
+					isDirectory:
+							&is_directory];
 
 	if (!exists || !is_directory) {
+
 		ERR_PRINT(
 				"VideoExporter: frames directory does not exist.");
 
@@ -242,12 +268,15 @@ bool VideoExporter::export_frames(
 
 	NSArray<NSString *> *all_files =
 			[file_manager
-					contentsOfDirectoryAtPath:frames_path
-					error:&directory_error];
+					contentsOfDirectoryAtPath:
+							frames_path
+					error:
+							&directory_error];
 
 	if (all_files == nil) {
 
 		if (directory_error != nil) {
+
 			NSLog(
 					@"VideoExporter: directory error: %@",
 					directory_error.localizedDescription);
@@ -264,15 +293,26 @@ bool VideoExporter::export_frames(
 	/* Select PNG frames                                                      */
 	/*************************************************************************/
 
+	/*
+	 * NSNumericSearch garante que:
+	 *
+	 * frame_1.png
+	 * frame_2.png
+	 * frame_10.png
+	 *
+	 * sejam ordenados numericamente e não alfabeticamente.
+	 */
 	NSArray<NSString *> *sorted_files =
-			[all_files sortedArrayUsingComparator:
-					^NSComparisonResult(
-							NSString *a,
-							NSString *b) {
+			[all_files
+					sortedArrayUsingComparator:
+							^NSComparisonResult(
+									NSString *a,
+									NSString *b) {
 
-						return [a compare:b
-								options:NSNumericSearch];
-					}];
+								return [a
+										compare:b
+										options:NSNumericSearch];
+							}];
 
 
 	NSMutableArray<NSString *> *frame_files =
@@ -293,6 +333,7 @@ bool VideoExporter::export_frames(
 
 
 	if (frame_files.count == 0) {
+
 		ERR_PRINT(
 				"VideoExporter: no PNG frames found.");
 
@@ -310,7 +351,8 @@ bool VideoExporter::export_frames(
 							frame_files[0]];
 
 	UIImage *first_image =
-			[UIImage imageWithContentsOfFile:first_frame_path];
+			[UIImage imageWithContentsOfFile:
+					first_frame_path];
 
 	if (first_image == nil ||
 			first_image.CGImage == nullptr) {
@@ -333,7 +375,9 @@ bool VideoExporter::export_frames(
 			CGImageGetHeight(first_cg_image);
 
 
-	if (width == 0 || height == 0) {
+	if (width == 0 ||
+			height == 0) {
+
 		ERR_PRINT(
 				"VideoExporter: invalid frame dimensions.");
 
@@ -345,6 +389,11 @@ bool VideoExporter::export_frames(
 	/* H.264 requires even dimensions                                        */
 	/*************************************************************************/
 
+	/*
+	 * H.264 normalmente trabalha com dimensões pares.
+	 * Rejeitamos o vídeo antes de criar o writer para evitar
+	 * uma falha posterior do encoder.
+	 */
 	if ((width % 2) != 0 ||
 			(height % 2) != 0) {
 
@@ -359,18 +408,23 @@ bool VideoExporter::export_frames(
 	/* Remove previous output file                                            */
 	/*************************************************************************/
 
-	if ([file_manager fileExistsAtPath:output_file]) {
+	if ([file_manager
+			fileExistsAtPath:
+					output_file]) {
 
 		NSError *remove_error = nil;
 
 		BOOL removed =
 				[file_manager
-						removeItemAtPath:output_file
-						error:&remove_error];
+						removeItemAtPath:
+								output_file
+						error:
+								&remove_error];
 
 		if (!removed) {
 
 			if (remove_error != nil) {
+
 				NSLog(
 						@"VideoExporter: unable to remove existing output: %@",
 						remove_error.localizedDescription);
@@ -399,13 +453,16 @@ bool VideoExporter::export_frames(
 								output_directory
 						withIntermediateDirectories:YES
 						attributes:nil
-						error:&directory_creation_error];
+						error:
+								&directory_creation_error];
 
 		if (!created &&
 				![file_manager
-						fileExistsAtPath:output_directory]) {
+						fileExistsAtPath:
+								output_directory]) {
 
 			if (directory_creation_error != nil) {
+
 				NSLog(
 						@"VideoExporter: unable to create output directory: %@",
 						directory_creation_error.localizedDescription);
@@ -421,21 +478,24 @@ bool VideoExporter::export_frames(
 	/*************************************************************************/
 
 	NSURL *output_url =
-			[NSURL fileURLWithPath:output_file];
-
+			[NSURL fileURLWithPath:
+					output_file];
 
 	NSError *writer_error = nil;
 
 	AVAssetWriter *writer =
 			[[AVAssetWriter alloc]
-					initWithURL:output_url
-					fileType:AVFileTypeMPEG4
-					error:&writer_error];
-
+					initWithURL:
+							output_url
+					fileType:
+							AVFileTypeMPEG4
+					error:
+							&writer_error];
 
 	if (writer == nil) {
 
 		if (writer_error != nil) {
+
 			NSLog(
 					@"VideoExporter: AVAssetWriter error: %@",
 					writer_error.localizedDescription);
@@ -452,8 +512,14 @@ bool VideoExporter::export_frames(
 	/* H.264 settings                                                         */
 	/*************************************************************************/
 
+	/*
+	 * 8 Mbps é suficiente para o tipo de conteúdo visual produzido
+	 * pelo Fluxus e evita arquivos excessivamente grandes.
+	 */
 	NSDictionary *compression_properties = @{
-		AVVideoAverageBitRateKey : @(8000000),
+		AVVideoAverageBitRateKey :
+				@(8000000),
+
 		AVVideoProfileLevelKey :
 				AVVideoProfileLevelH264HighAutoLevel
 	};
@@ -480,14 +546,16 @@ bool VideoExporter::export_frames(
 
 	AVAssetWriterInput *video_input =
 			[[AVAssetWriterInput alloc]
-					initWithMediaType:AVMediaTypeVideo
-					outputSettings:video_settings];
-
+					initWithMediaType:
+							AVMediaTypeVideo
+					outputSettings:
+							video_settings];
 
 	video_input.expectsMediaDataInRealTime = NO;
 
 
-	if (![writer canAddInput:video_input]) {
+	if (![writer canAddInput:
+			video_input]) {
 
 		ERR_PRINT(
 				"VideoExporter: cannot add video input.");
@@ -496,7 +564,55 @@ bool VideoExporter::export_frames(
 	}
 
 
-	[writer addInput:video_input];
+	[writer addInput:
+			video_input];
+
+
+	/*************************************************************************/
+	/* Create pixel buffer adaptor                                            */
+	/*************************************************************************/
+
+	/*
+	 * IMPORTANTE:
+	 *
+	 * appendPixelBuffer:withPresentationTime:
+	 * NÃO pertence a AVAssetWriterInput.
+	 *
+	 * Esse método pertence a:
+	 *
+	 * AVAssetWriterInputPixelBufferAdaptor
+	 *
+	 * Portanto, os CVPixelBufferRef devem ser enviados através
+	 * deste adaptor.
+	 */
+
+	NSDictionary *source_pixel_buffer_attributes = @{
+		(NSString *)kCVPixelBufferPixelFormatTypeKey :
+				@(kCVPixelFormatType_32BGRA),
+
+		(NSString *)kCVPixelBufferWidthKey :
+				@(width),
+
+		(NSString *)kCVPixelBufferHeightKey :
+				@(height)
+	};
+
+
+	AVAssetWriterInputPixelBufferAdaptor *pixel_buffer_adaptor =
+			[[AVAssetWriterInputPixelBufferAdaptor alloc]
+					initWithAssetWriterInput:
+							video_input
+					sourcePixelBufferAttributes:
+							source_pixel_buffer_attributes];
+
+
+	if (pixel_buffer_adaptor == nil) {
+
+		ERR_PRINT(
+				"VideoExporter: unable to create pixel buffer adaptor.");
+
+		return false;
+	}
 
 
 	/*************************************************************************/
@@ -509,6 +625,7 @@ bool VideoExporter::export_frames(
 				writer.error;
 
 		if (error != nil) {
+
 			NSLog(
 					@"VideoExporter: startWriting error: %@",
 					error.localizedDescription);
@@ -521,7 +638,9 @@ bool VideoExporter::export_frames(
 	}
 
 
-	[writer startSessionAtSourceTime:kCMTimeZero];
+	[writer
+			startSessionAtSourceTime:
+					kCMTimeZero];
 
 
 	/*************************************************************************/
@@ -534,11 +653,16 @@ bool VideoExporter::export_frames(
 
 		/*
 		 * Aguarda espaço no AVAssetWriterInput.
+		 *
+		 * O plugin é síncrono nesta primeira implementação.
+		 * Posteriormente podemos transformar a exportação em
+		 * uma operação assíncrona para não bloquear a thread do Godot.
 		 */
 		while (!video_input.readyForMoreMediaData) {
 
 			[NSThread
-					sleepForTimeInterval:0.001];
+					sleepForTimeInterval:
+							0.001];
 
 			if (writer.status ==
 						AVAssetWriterStatusFailed ||
@@ -570,7 +694,8 @@ bool VideoExporter::export_frames(
 
 
 		UIImage *image =
-				[UIImage imageWithContentsOfFile:frame_path];
+				[UIImage imageWithContentsOfFile:
+						frame_path];
 
 
 		if (image == nil ||
@@ -646,6 +771,16 @@ bool VideoExporter::export_frames(
 		/* Presentation timestamp                                                */
 		/*************************************************************************/
 
+		/*
+		 * Para FPS = 12:
+		 *
+		 * frame 0 ->  0/12
+		 * frame 1 ->  1/12
+		 * frame 2 ->  2/12
+		 * ...
+		 *
+		 * Isso determina a duração final do vídeo.
+		 */
 		CMTime presentation_time =
 				CMTimeMake(
 						static_cast<int64_t>(index),
@@ -656,14 +791,22 @@ bool VideoExporter::export_frames(
 		/* Append pixel buffer                                                   */
 		/*************************************************************************/
 
+		/*
+		 * O pixel buffer é enviado ao adaptor, NÃO diretamente ao
+		 * AVAssetWriterInput.
+		 */
 		BOOL appended =
-				[video_input
+				[pixel_buffer_adaptor
 						appendPixelBuffer:
 								pixel_buffer
 						withPresentationTime:
 								presentation_time];
 
 
+		/*
+		 * O adaptor não mantém nossa referência ao pixel buffer
+		 * depois que appendPixelBuffer retorna.
+		 */
 		CVPixelBufferRelease(
 				pixel_buffer);
 
@@ -674,6 +817,7 @@ bool VideoExporter::export_frames(
 					writer.error;
 
 			if (error != nil) {
+
 				NSLog(
 						@"VideoExporter: append error: %@",
 						error.localizedDescription);
@@ -699,6 +843,7 @@ bool VideoExporter::export_frames(
 				writer.error;
 
 		if (error != nil) {
+
 			NSLog(
 					@"VideoExporter: writer stopped: %@",
 					error.localizedDescription);
@@ -715,6 +860,12 @@ bool VideoExporter::export_frames(
 	[video_input markAsFinished];
 
 
+	/*
+	 * finishWritingWithCompletionHandler é assíncrono.
+	 *
+	 * Como export_frames() é atualmente uma função síncrona para o
+	 * Godot, usamos um semaphore apenas para esperar a conclusão.
+	 */
 	dispatch_semaphore_t semaphore =
 			dispatch_semaphore_create(0);
 
@@ -724,15 +875,16 @@ bool VideoExporter::export_frames(
 
 
 	[writer
-			finishWritingWithCompletionHandler:^{
+			finishWritingWithCompletionHandler:
+					^{
 
-				finish_success =
-						(writer.status ==
-								AVAssetWriterStatusCompleted);
+						finish_success =
+								(writer.status ==
+										AVAssetWriterStatusCompleted);
 
-				dispatch_semaphore_signal(
-						semaphore);
-			}];
+						dispatch_semaphore_signal(
+								semaphore);
+					}];
 
 
 	dispatch_semaphore_wait(
@@ -750,6 +902,7 @@ bool VideoExporter::export_frames(
 				writer.error;
 
 		if (error != nil) {
+
 			NSLog(
 					@"VideoExporter: finishWriting error: %@",
 					error.localizedDescription);
@@ -763,7 +916,8 @@ bool VideoExporter::export_frames(
 
 
 	if (![file_manager
-			fileExistsAtPath:output_file]) {
+			fileExistsAtPath:
+					output_file]) {
 
 		ERR_PRINT(
 				"VideoExporter: MP4 was not created.");
@@ -776,7 +930,8 @@ bool VideoExporter::export_frames(
 			[file_manager
 					attributesOfItemAtPath:
 							output_file
-					error:nil];
+					error:
+							nil];
 
 
 	unsigned long long file_size =
@@ -808,7 +963,8 @@ bool VideoExporter::export_frames(
 
 void godot_video_exporter_init() {
 
-	GDREGISTER_CLASS(VideoExporter);
+	GDREGISTER_CLASS(
+			VideoExporter);
 
 
 	VideoExporter *video_exporter =
@@ -820,19 +976,38 @@ void godot_video_exporter_init() {
 			video_exporter);
 }
 
+
+/*************************************************************************/
+/* Godot iOS plugin deinitialization                                     */
+/*************************************************************************/
+
 void godot_video_exporter_deinit() {
 
 	Engine *engine =
 			Engine::get_singleton();
 
-	if (engine->has_singleton("VideoExporter")) {
-		engine->unregister_singleton("VideoExporter");
+
+	/*
+	 * Primeiro removemos o singleton do Engine.
+	 */
+	if (engine->has_singleton(
+			"VideoExporter")) {
+
+		engine->unregister_singleton(
+				"VideoExporter");
 	}
 
+
+	/*
+	 * Depois liberamos o objeto.
+	 */
 	VideoExporter *video_exporter =
 			VideoExporter::get_singleton();
 
+
 	if (video_exporter != nullptr) {
-		memdelete(video_exporter);
+
+		memdelete(
+				video_exporter);
 	}
 }
