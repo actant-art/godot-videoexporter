@@ -528,25 +528,25 @@ jobs:
           sed -n '145,165p' SConstruct
     
             
-          # ==========================================================
-          # 11.   GERAR HEADERS GODOT
-          # ==========================================================
-          - name: Inspect Godot C++ headers
-            shell: bash
-            run: |
-              cd godot-ios-plugins
-          
-              echo "===== godot_cpp directories ====="
-              find . \
-                -type d \
-                -name "godot_cpp" \
-                -print
-          
-              echo ""
-              echo "===== object.hpp ====="
-              find . \
-                -name "object.hpp" \
-                -print
+      # ==========================================================
+      # 11.   GERAR HEADERS GODOT
+      # ==========================================================
+      - name: Inspect Godot C++ headers
+        shell: bash
+        run: |
+          cd godot-ios-plugins
+      
+          echo "===== godot_cpp directories ====="
+          find . \
+            -type d \
+            -name "godot_cpp" \
+            -print
+      
+          echo ""
+          echo "===== object.hpp ====="
+          find . \
+            -name "object.hpp" \
+            -print
           
           echo ""
           echo "===== PhotoPicker source ====="
