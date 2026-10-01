@@ -620,6 +620,15 @@ jobs:
       
           echo "===== platform/ios references ====="
           grep -R -n "platform/ios" SConstruct SCons* 2>/dev/null | head -50 || true
+
+
+      - name: Inspect SConstruct
+        run: |
+          cd godot-ios-plugins
+      
+          echo "===== SConstruct linhas 140-175 ====="
+          sed -n '140,175p' SConstruct
+
             
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
