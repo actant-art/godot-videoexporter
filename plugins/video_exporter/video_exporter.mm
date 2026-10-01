@@ -820,30 +820,19 @@ void godot_video_exporter_init() {
 			video_exporter);
 }
 
-
 void godot_video_exporter_deinit() {
 
 	Engine *engine =
 			Engine::get_singleton();
 
-
-	if (!engine->has_singleton(
-			"VideoExporter")) {
-
-		return;
+	if (engine->has_singleton("VideoExporter")) {
+		engine->unregister_singleton("VideoExporter");
 	}
 
+	VideoExporter *video_exporter =
+			VideoExporter::get_singleton();
 
-	Object *object =
-			engine->get_singleton_object(
-					"VideoExporter");
-
-
-	engine->unregister_singleton(
-			"VideoExporter");
-
-
-	if (object != nullptr) {
-		memdelete(object);
+	if (video_exporter != nullptr) {
+		memdelete(video_exporter);
 	}
 }
