@@ -13,10 +13,10 @@ jobs:
     steps:
 
       # ==========================================================
-      # 0. CHECKOUT DO REPOSITÓRIO FLUXUS VIDEOEXPORTER
+      # 0. CHECKOUT DO REPOSITÓRIO VIDEOEXPORTER
       # ==========================================================
 
-      - name: Checkout Fluxus VideoExporter repository
+      - name: Checkout VideoExporter repository
         uses: actions/checkout@v4
 
 
@@ -65,14 +65,14 @@ jobs:
 
 
       # ==========================================================
-      # 3. VERIFICAR ARQUIVOS DO FLUXUS VIDEOEXPORTER
+      # 3. VERIFICAR ARQUIVOS DO VIDEOEXPORTER
       # ==========================================================
 
-      - name: Verify Fluxus VideoExporter files
+      - name: Verify VideoExporter files
         shell: bash
         run: |
 
-          echo "===== Fluxus VideoExporter files ====="
+          echo "===== VideoExporter files ====="
 
           find plugins/video_exporter \
             -maxdepth 1 \
@@ -92,7 +92,7 @@ jobs:
             fi
           done
 
-          echo "All Fluxus VideoExporter files found."
+          echo "OK: All VideoExporter files found."
 
 
       # ==========================================================
@@ -112,35 +112,7 @@ jobs:
 
 
       # ==========================================================
-      # 5. USAR A CORREÇÃO DO PHOTOPICKER PARA GODOT 4.6
-      # ==========================================================
-
-      - name: Checkout PhotoPicker Godot 4.6 fix
-        run: |
-          cd godot-ios-plugins
-
-          git fetch origin pull/105/head:photo-picker-fix
-
-          git checkout 2d94399
-
-          echo ""
-          echo "===== Godot iOS plugins commit ====="
-          git rev-parse HEAD
-
-
-      # ==========================================================
-      # 6. INICIALIZAR / ATUALIZAR SUBMODULES
-      # ==========================================================
-
-      - name: Update submodules
-        run: |
-          cd godot-ios-plugins
-
-          git submodule update --init --recursive
-
-
-      # ==========================================================
-      # 7. SELECIONAR GODOT 4.6.3
+      # 5. SELECIONAR GODOT 4.6.3
       # ==========================================================
 
       - name: Checkout Godot 4.6.3
@@ -161,14 +133,27 @@ jobs:
 
 
       # ==========================================================
-      # 8. INSTALAR VIDEOEXPORTER NO GODOT IOS PLUGINS
+      # 6. ATUALIZAR SUBMODULES
       # ==========================================================
 
-      - name: Install custom Fluxus VideoExporter source
+      - name: Update submodules
+        run: |
+          cd godot-ios-plugins
+
+          git submodule update --init --recursive
+
+
+      # ==========================================================
+      # 7. INSTALAR VIDEOEXPORTER NO GODOT IOS PLUGINS
+      # ==========================================================
+
+      - name: Install VideoExporter source
         shell: bash
         run: |
 
-          echo "===== Fluxus VideoExporter source ====="
+          echo "======================================"
+          echo "VIDEOEXPORTER SOURCE"
+          echo "======================================"
 
           find plugins/video_exporter \
             -maxdepth 1 \
@@ -176,13 +161,17 @@ jobs:
             -print
 
           echo ""
-          echo "===== Creating VideoExporter directory ====="
+          echo "======================================"
+          echo "CREATE VIDEOEXPORTER DIRECTORY"
+          echo "======================================"
 
           mkdir -p \
             godot-ios-plugins/plugins/video_exporter
 
           echo ""
-          echo "===== Copying Fluxus VideoExporter files ====="
+          echo "======================================"
+          echo "COPY VIDEOEXPORTER FILES"
+          echo "======================================"
 
           cp \
             plugins/video_exporter/video_exporter.h \
@@ -197,7 +186,9 @@ jobs:
             godot-ios-plugins/plugins/video_exporter/video_exporter.gdip
 
           echo ""
-          echo "===== Installed VideoExporter source ====="
+          echo "======================================"
+          echo "INSTALLED VIDEOEXPORTER"
+          echo "======================================"
 
           find godot-ios-plugins/plugins/video_exporter \
             -maxdepth 1 \
@@ -206,69 +197,45 @@ jobs:
 
 
       # ==========================================================
-      # 8.1 INSPECIONAR VIDEOEXPORTER
+      # 7.1 INSPECIONAR VIDEOEXPORTER
       # ==========================================================
 
-      - name: Inspect VideoExporter directory
+      - name: Inspect VideoExporter
         shell: bash
         run: |
 
+          cd godot-ios-plugins
+
           echo "======================================"
-          echo "VIDEO EXPORTER DIRECTORY"
+          echo "VIDEOEXPORTER DIRECTORY"
           echo "======================================"
 
-          find godot-ios-plugins/plugins/video_exporter \
+          find plugins/video_exporter \
             -maxdepth 1 \
             -type f \
             -print
 
           echo ""
           echo "======================================"
-          echo "ALL SOURCE FILES"
+          echo "INIT / DEINIT"
           echo "======================================"
 
-          find godot-ios-plugins/plugins/video_exporter \
-            -maxdepth 1 \
-            -type f \
-            \( -name "*.cpp" -o -name "*.mm" -o -name "*.m" \) \
-            -print
+          grep -R \
+            -n \
+            -E \
+            'godot_video_exporter_init|godot_video_exporter_deinit' \
+            plugins/video_exporter
 
           echo ""
           echo "======================================"
-          echo "SEARCH INIT / DEINIT"
+          echo "VIDEOEXPORTER GDIP"
           echo "======================================"
 
-          grep -R \
-            -n \
-            -E \
-            'godot_video_exporter_init|godot_video_exporter_deinit' \
-            godot-ios-plugins/plugins/video_exporter \
-            || true
+          cat plugins/video_exporter/video_exporter.gdip
 
 
       # ==========================================================
-      # 8.2 LOCALIZAR INICIALIZAÇÃO DO VIDEOEXPORTER
-      # ==========================================================
-
-      - name: Find VideoExporter initialization
-        shell: bash
-        run: |
-
-          echo "======================================"
-          echo "SEARCH ENTIRE REPOSITORY"
-          echo "======================================"
-
-          grep -R \
-            -n \
-            -E \
-            'godot_video_exporter_init|godot_video_exporter_deinit' \
-            godot-ios-plugins \
-            --exclude-dir=.git \
-            || true
-
-
-      # ==========================================================
-      # 8.3 REGISTRAR VIDEOEXPORTER NO SCONSTRUCT
+      # 8. REGISTRAR VIDEOEXPORTER NO SCONSTRUCT
       # ==========================================================
 
       - name: Register VideoExporter in SConstruct
@@ -278,28 +245,16 @@ jobs:
           cd godot-ios-plugins
 
           echo "======================================"
-          echo "CURRENT VIDEO PLUGINS IN SCONSTRUCT"
+          echo "CURRENT PLUGIN ENUM"
           echo "======================================"
 
           grep -n \
-            -E \
-            'photo_picker|plugin.*Enum|plugins' \
-            SConstruct \
-            || true
+            "EnumVariable('plugin'" \
+            SConstruct
 
           echo ""
           echo "======================================"
-          echo "SEARCH VIDEOEXPORTER"
-          echo "======================================"
-
-          grep -n \
-            'video_exporter' \
-            SConstruct \
-            || true
-
-          echo ""
-          echo "======================================"
-          echo "PATCH SCONSTRUCT"
+          echo "REGISTER VIDEOEXPORTER"
           echo "======================================"
 
           python3 <<'PY'
@@ -308,16 +263,23 @@ jobs:
           path = Path("SConstruct")
           text = path.read_text()
 
-          if "video_exporter" in text:
+          if "'video_exporter'" in text:
               print("VideoExporter already registered.")
               raise SystemExit(0)
 
-          old = '"photo_picker"'
-          new = '"photo_picker", "video_exporter"'
+          old = (
+              "['', 'apn', 'arkit', 'camera', 'icloud', "
+              "'gamecenter', 'inappstore', 'photo_picker']"
+          )
+
+          new = (
+              "['', 'apn', 'arkit', 'camera', 'icloud', "
+              "'gamecenter', 'inappstore', 'photo_picker', "
+              "'video_exporter']"
+          )
 
           if old not in text:
-              print("ERROR: Could not find the PhotoPicker plugin entry in SConstruct.")
-              print("The SConstruct structure may have changed.")
+              print("ERROR: Expected plugin list not found.")
               raise SystemExit(1)
 
           text = text.replace(old, new, 1)
@@ -329,16 +291,20 @@ jobs:
 
           echo ""
           echo "======================================"
-          echo "VERIFY SCONSTRUCT"
+          echo "VERIFY VIDEOEXPORTER REGISTRATION"
           echo "======================================"
 
           grep -n \
-            'video_exporter' \
-            SConstruct \
-            || {
-              echo "ERROR: video_exporter was not registered in SConstruct."
-              exit 1
-            }
+            "EnumVariable('plugin'" \
+            SConstruct
+
+          if ! grep -q \
+            "'video_exporter'" \
+            SConstruct
+          then
+            echo "ERROR: video_exporter was not registered."
+            exit 1
+          fi
 
           echo ""
           echo "OK: VideoExporter registered."
@@ -348,92 +314,32 @@ jobs:
       # 9. VERIFICAR VIDEOEXPORTER
       # ==========================================================
 
-      - name: Verify custom VideoExporter source
+      - name: Verify VideoExporter source
         shell: bash
         run: |
 
           cd godot-ios-plugins
 
           echo "======================================"
-          echo "VIDEO EXPORTER GDIP"
+          echo "VERIFY FRAMEWORKS"
           echo "======================================"
 
-          cat plugins/video_exporter/video_exporter.gdip
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY AVFOUNDATION"
-          echo "======================================"
-
-          grep -q 'AVFoundation.framework' \
-            plugins/video_exporter/video_exporter.gdip \
-            || {
-              echo "ERROR: AVFoundation.framework not declared."
+          for framework in \
+            'AVFoundation.framework' \
+            'CoreGraphics.framework' \
+            'CoreMedia.framework' \
+            'CoreVideo.framework' \
+            'UIKit.framework'
+          do
+            if ! grep -q "$framework" \
+              plugins/video_exporter/video_exporter.gdip
+            then
+              echo "ERROR: Missing $framework"
               exit 1
-            }
+            fi
 
-          echo "OK: AVFoundation.framework"
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY CORE GRAPHICS"
-          echo "======================================"
-
-          grep -q 'CoreGraphics.framework' \
-            plugins/video_exporter/video_exporter.gdip \
-            || {
-              echo "ERROR: CoreGraphics.framework not declared."
-              exit 1
-            }
-
-          echo "OK: CoreGraphics.framework"
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY CORE MEDIA"
-          echo "======================================"
-
-          grep -q 'CoreMedia.framework' \
-            plugins/video_exporter/video_exporter.gdip \
-            || {
-              echo "ERROR: CoreMedia.framework not declared."
-              exit 1
-            }
-
-          echo "OK: CoreMedia.framework"
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY CORE VIDEO"
-          echo "======================================"
-
-          grep -q 'CoreVideo.framework' \
-            plugins/video_exporter/video_exporter.gdip \
-            || {
-              echo "ERROR: CoreVideo.framework not declared."
-              exit 1
-            }
-
-          echo "OK: CoreVideo.framework"
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY UIKIT"
-          echo "======================================"
-
-          grep -q 'UIKit.framework' \
-            plugins/video_exporter/video_exporter.gdip \
-            || {
-              echo "ERROR: UIKit.framework not declared."
-              exit 1
-            }
-
-          echo "OK: UIKit.framework"
+            echo "OK: $framework"
+          done
 
 
           echo ""
@@ -445,7 +351,7 @@ jobs:
             'initialization="godot_video_exporter_init"' \
             plugins/video_exporter/video_exporter.gdip \
             || {
-              echo "ERROR: VideoExporter initialization not declared."
+              echo "ERROR: initialization missing."
               exit 1
             }
 
@@ -453,7 +359,7 @@ jobs:
             'deinitialization="godot_video_exporter_deinit"' \
             plugins/video_exporter/video_exporter.gdip \
             || {
-              echo "ERROR: VideoExporter deinitialization not declared."
+              echo "ERROR: deinitialization missing."
               exit 1
             }
 
@@ -463,14 +369,14 @@ jobs:
 
           echo ""
           echo "======================================"
-          echo "VERIFY VIDEOEXPORTER HEADER"
+          echo "VERIFY HEADER"
           echo "======================================"
 
           grep -q \
             'class VideoExporter' \
             plugins/video_exporter/video_exporter.h \
             || {
-              echo "ERROR: VideoExporter class not found."
+              echo "ERROR: VideoExporter class missing."
               exit 1
             }
 
@@ -478,22 +384,23 @@ jobs:
             'export_frames' \
             plugins/video_exporter/video_exporter.h \
             || {
-              echo "ERROR: export_frames API not found."
+              echo "ERROR: export_frames API missing."
               exit 1
             }
 
           echo "OK: VideoExporter class"
-          echo "OK: export_frames API"
+          echo "OK: export_frames"
 
 
           echo ""
           echo "======================================"
-          echo "VERIFY VIDEOEXPORTER IMPLEMENTATION"
+          echo "VERIFY IMPLEMENTATION"
           echo "======================================"
 
           for symbol in \
             'AVAssetWriter' \
             'AVAssetWriterInput' \
+            'AVAssetWriterInputPixelBufferAdaptor' \
             'AVFileTypeMPEG4' \
             'AVVideoCodecTypeH264' \
             'CVPixelBuffer' \
@@ -504,68 +411,43 @@ jobs:
             if ! grep -q "$symbol" \
               plugins/video_exporter/video_exporter.mm
             then
-              echo "ERROR: Required symbol not found: $symbol"
+              echo "ERROR: Missing symbol: $symbol"
               exit 1
             fi
+
+            echo "OK: $symbol"
           done
 
-          echo "OK: AVAssetWriter"
-          echo "OK: AVAssetWriterInput"
-          echo "OK: AVFileTypeMPEG4"
-          echo "OK: AVVideoCodecTypeH264"
-          echo "OK: CVPixelBuffer"
-          echo "OK: CMTimeMake"
-          echo "OK: appendPixelBuffer"
-          echo "OK: finishWritingWithCompletionHandler"
-
 
           echo ""
           echo "======================================"
-          echo "VIDEOEXPORTER HEADER"
+          echo "VERIFY SINGLETON"
           echo "======================================"
 
-          sed -n '1,260p' \
-            plugins/video_exporter/video_exporter.h
+          grep -q \
+            'register_singleton' \
+            plugins/video_exporter/video_exporter.mm \
+            || {
+              echo "ERROR: register_singleton missing."
+              exit 1
+            }
 
+          grep -q \
+            '"VideoExporter"' \
+            plugins/video_exporter/video_exporter.mm \
+            || {
+              echo "ERROR: VideoExporter singleton missing."
+              exit 1
+            }
 
-          echo ""
-          echo "======================================"
-          echo "VIDEOEXPORTER IMPLEMENTATION"
-          echo "======================================"
-
-          sed -n '1,700p' \
-            plugins/video_exporter/video_exporter.mm
+          echo "OK: singleton"
 
 
       # ==========================================================
-      # 9.1 VERIFICAR IOS DEPLOYMENT TARGET DO GODOT
+      # 10. AJUSTAR IOS DEPLOYMENT TARGET
       # ==========================================================
 
-      - name: Inspect Godot iOS deployment target
-        shell: bash
-        run: |
-
-          cd godot-ios-plugins/godot
-
-          echo "======================================"
-          echo "SEARCH ios_deployment_target"
-          echo "======================================"
-
-          grep -R \
-            -n \
-            "ios_deployment_target" \
-            SConstruct \
-            platform \
-            methods.py \
-            2>/dev/null \
-            || true
-
-
-      # ==========================================================
-      # 9.2 AJUSTAR IOS DEPLOYMENT TARGET DO VIDEOEXPORTER
-      # ==========================================================
-
-      - name: Set VideoExporter iOS deployment target
+      - name: Set iOS deployment target to 15.0
         shell: bash
         run: |
 
@@ -583,7 +465,7 @@ jobs:
 
           echo ""
           echo "======================================"
-          echo "SETTING IOS DEPLOYMENT TARGET TO 15.0"
+          echo "SETTING IOS 15.0"
           echo "======================================"
 
           sed -i '' \
@@ -596,7 +478,7 @@ jobs:
 
           echo ""
           echo "======================================"
-          echo "VERIFY IOS DEPLOYMENT TARGET"
+          echo "VERIFY IOS 15.0"
           echo "======================================"
 
           grep -n \
@@ -604,25 +486,20 @@ jobs:
             'mios-simulator-version-min|miphoneos-version-min' \
             SConstruct
 
-          echo ""
-          echo "======================================"
-          echo "VERIFY NO IOS 12 TARGET REMAINS"
-          echo "======================================"
-
           if grep -q \
             -E \
             'mios-simulator-version-min=12\.0|miphoneos-version-min=12\.0' \
             SConstruct
           then
-            echo "ERROR: iOS 12 deployment target still present."
+            echo "ERROR: iOS 12 target remains."
             exit 1
           fi
 
-          echo "OK: VideoExporter deployment target is iOS 15.0."
+          echo "OK: iOS deployment target 15.0."
 
 
       # ==========================================================
-      # 10. COMPILAR HEADERS DO GODOT PARA IOS
+      # 11. GERAR HEADERS GODOT
       # ==========================================================
 
       - name: Build Godot iOS headers
@@ -636,14 +513,13 @@ jobs:
 
 
       # ==========================================================
-      # 11. GERAR XCFRAMEWORK RELEASE
+      # 12. BUILD RELEASE DEVICE
       # ==========================================================
 
-      - name: Build VideoExporter release xcframework
+      - name: Build VideoExporter release device
         run: |
-          cd godot-ios-plugins
 
-          chmod +x scripts/generate_xcframework.sh
+          cd godot-ios-plugins
 
           scons \
             target=release \
@@ -651,6 +527,16 @@ jobs:
             plugin=video_exporter \
             version=4.0 \
             ios_deployment_target=15.0
+
+
+      # ==========================================================
+      # 13. BUILD RELEASE SIMULATOR X86_64
+      # ==========================================================
+
+      - name: Build VideoExporter release simulator x86_64
+        run: |
+
+          cd godot-ios-plugins
 
           scons \
             target=release \
@@ -660,6 +546,16 @@ jobs:
             version=4.0 \
             ios_deployment_target=15.0
 
+
+      # ==========================================================
+      # 14. BUILD RELEASE SIMULATOR ARM64
+      # ==========================================================
+
+      - name: Build VideoExporter release simulator arm64
+        run: |
+
+          cd godot-ios-plugins
+
           scons \
             target=release \
             arch=arm64 \
@@ -668,10 +564,30 @@ jobs:
             version=4.0 \
             ios_deployment_target=15.0
 
+
+      # ==========================================================
+      # 15. CRIAR FAT SIMULATOR LIBRARY
+      # ==========================================================
+
+      - name: Create release simulator library
+        run: |
+
+          cd godot-ios-plugins
+
           lipo -create \
             "./bin/libvideo_exporter.x86_64-simulator.release.a" \
             "./bin/libvideo_exporter.arm64-simulator.release.a" \
             -output "./bin/libvideo_exporter-simulator.release.a"
+
+
+      # ==========================================================
+      # 16. CRIAR RELEASE XCFRAMEWORK
+      # ==========================================================
+
+      - name: Create release XCFramework
+        run: |
+
+          cd godot-ios-plugins
 
           xcodebuild -create-xcframework \
             -library "./bin/libvideo_exporter.arm64-ios.release.a" \
@@ -680,17 +596,17 @@ jobs:
 
 
       # ==========================================================
-      # 11.1 INSPECIONAR SÍMBOLOS DO VIDEOEXPORTER
+      # 17. INSPECIONAR RELEASE
       # ==========================================================
 
-      - name: Inspect VideoExporter symbols
+      - name: Inspect release VideoExporter
         shell: bash
         run: |
 
           cd godot-ios-plugins
 
           echo "======================================"
-          echo "VIDEO EXPORTER RELEASE LIBRARY"
+          echo "STATIC LIBRARY"
           echo "======================================"
 
           ls -lh \
@@ -698,30 +614,17 @@ jobs:
 
           echo ""
           echo "======================================"
-          echo "SEARCH INIT / DEINIT WITH STRINGS"
+          echo "XCFRAMEWORK"
           echo "======================================"
 
-          strings \
-            bin/libvideo_exporter.arm64-ios.release.a \
-            | grep -E \
-            'godot_video_exporter_(init|deinit)' \
-            || true
-
-          echo ""
-          echo "======================================"
-          echo "SEARCH VIDEOEXPORTER SYMBOLS"
-          echo "======================================"
-
-          strings \
-            bin/libvideo_exporter.arm64-ios.release.a \
-            | grep -E \
-            'VideoExporter|video_exporter' \
-            | head -100 \
-            || true
+          find \
+            bin/video_exporter.release.xcframework \
+            -maxdepth 3 \
+            -print
 
           echo ""
           echo "======================================"
-          echo "NM INIT / DEINIT"
+          echo "INIT / DEINIT SYMBOLS"
           echo "======================================"
 
           nm -gU \
@@ -730,13 +633,26 @@ jobs:
             'godot_video_exporter_(init|deinit)' \
             || true
 
+          echo ""
+          echo "======================================"
+          echo "VIDEOEXPORTER SYMBOLS"
+          echo "======================================"
+
+          nm -gU \
+            bin/libvideo_exporter.arm64-ios.release.a \
+            | grep -E \
+            'VideoExporter|video_exporter' \
+            | head -100 \
+            || true
+
 
       # ==========================================================
-      # 12. GERAR XCFRAMEWORK DEBUG
+      # 18. GERAR DEBUG
       # ==========================================================
 
-      - name: Build VideoExporter debug xcframework
+      - name: Build VideoExporter debug
         run: |
+
           cd godot-ios-plugins
 
           scons \
@@ -774,236 +690,57 @@ jobs:
 
 
       # ==========================================================
-      # 13. VERIFICAR ARQUIVOS GERADOS
+      # 19. VALIDAR XCFRAMEWORKS
       # ==========================================================
 
-      - name: Verify generated files
-        run: |
-          cd godot-ios-plugins
-
-          echo "======================================"
-          echo "XCFRAMEWORKS"
-          echo "======================================"
-
-          find bin \
-            -maxdepth 1 \
-            -name "video_exporter*.xcframework" \
-            -print
-
-          echo ""
-          echo "======================================"
-          echo "STATIC LIBRARIES"
-          echo "======================================"
-
-          find bin \
-            -maxdepth 1 \
-            -name "libvideo_exporter*.a" \
-            -print
-
-          echo ""
-          echo "======================================"
-          echo "GDIP"
-          echo "======================================"
-
-          find plugins/video_exporter \
-            -maxdepth 1 \
-            -name "*.gdip" \
-            -print
-
-          echo ""
-          echo "======================================"
-          echo "BIN DIRECTORY"
-          echo "======================================"
-
-          ls -lah bin
-
-
-      # ==========================================================
-      # 14. VALIDAR XCFRAMEWORK E GDIP
-      # ==========================================================
-
-      - name: Validate XCFramework and GDIP
+      - name: Validate VideoExporter
         shell: bash
         run: |
 
           cd godot-ios-plugins
 
           echo "======================================"
-          echo "VALIDATE RELEASE XCFRAMEWORK"
+          echo "RELEASE XCFRAMEWORK"
           echo "======================================"
 
-          RELEASE_XCFRAMEWORK="bin/video_exporter.release.xcframework"
-
-          if [ ! -d "$RELEASE_XCFRAMEWORK" ]; then
-            echo "ERROR: Release XCFramework not found:"
-            echo "$RELEASE_XCFRAMEWORK"
+          if [ ! -d \
+            "bin/video_exporter.release.xcframework"
+          ]; then
+            echo "ERROR: Release XCFramework missing."
             exit 1
           fi
 
-          echo "OK: Release XCFramework exists."
-
-          find "$RELEASE_XCFRAMEWORK" \
-            -maxdepth 3 \
-            -type f \
-            | sort
+          echo "OK: Release XCFramework"
 
 
           echo ""
           echo "======================================"
-          echo "VALIDATE DEBUG XCFRAMEWORK"
+          echo "DEBUG XCFRAMEWORK"
           echo "======================================"
 
-          DEBUG_XCFRAMEWORK="bin/video_exporter.debug.xcframework"
-
-          if [ ! -d "$DEBUG_XCFRAMEWORK" ]; then
-            echo "ERROR: Debug XCFramework not found:"
-            echo "$DEBUG_XCFRAMEWORK"
+          if [ ! -d \
+            "bin/video_exporter.debug.xcframework"
+          ]; then
+            echo "ERROR: Debug XCFramework missing."
             exit 1
           fi
 
-          echo "OK: Debug XCFramework exists."
-
-          find "$DEBUG_XCFRAMEWORK" \
-            -maxdepth 3 \
-            -type f \
-            | sort
+          echo "OK: Debug XCFramework"
 
 
           echo ""
           echo "======================================"
-          echo "VALIDATE GDIP"
+          echo "GDIP"
           echo "======================================"
 
-          GDIP="plugins/video_exporter/video_exporter.gdip"
-
-          if [ ! -f "$GDIP" ]; then
-            echo "ERROR: .gdip file not found:"
-            echo "$GDIP"
+          if [ ! -f \
+            "plugins/video_exporter/video_exporter.gdip"
+          ]; then
+            echo "ERROR: GDIP missing."
             exit 1
           fi
 
-          echo "OK: .gdip exists."
-
-          cat "$GDIP"
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY GDIP FRAMEWORKS"
-          echo "======================================"
-
-          for framework in \
-            'AVFoundation.framework' \
-            'CoreGraphics.framework' \
-            'CoreMedia.framework' \
-            'CoreVideo.framework' \
-            'UIKit.framework'
-          do
-            if ! grep -q "$framework" "$GDIP"; then
-              echo "ERROR: .gdip does not declare $framework."
-              exit 1
-            fi
-
-            echo "OK: $framework declared."
-          done
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY GDIP INITIALIZATION"
-          echo "======================================"
-
-          if ! grep -q \
-            'initialization="godot_video_exporter_init"' \
-            "$GDIP"
-          then
-            echo "ERROR: VideoExporter initialization function not declared."
-            exit 1
-          fi
-
-          if ! grep -q \
-            'deinitialization="godot_video_exporter_deinit"' \
-            "$GDIP"
-          then
-            echo "ERROR: VideoExporter deinitialization function not declared."
-            exit 1
-          fi
-
-          echo "OK: VideoExporter initialization declared."
-          echo "OK: VideoExporter deinitialization declared."
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY VIDEOEXPORTER SOURCE"
-          echo "======================================"
-
-          for symbol in \
-            'AVAssetWriter' \
-            'AVAssetWriterInput' \
-            'AVFileTypeMPEG4' \
-            'AVVideoCodecTypeH264' \
-            'CVPixelBuffer' \
-            'CMTimeMake' \
-            'appendPixelBuffer'
-          do
-            if ! grep -q "$symbol" \
-              plugins/video_exporter/video_exporter.mm
-            then
-              echo "ERROR: Required source symbol not found: $symbol"
-              exit 1
-            fi
-
-            echo "OK: $symbol"
-          done
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY PUBLIC API"
-          echo "======================================"
-
-          if ! grep -q \
-            'export_frames' \
-            plugins/video_exporter/video_exporter.h
-          then
-            echo "ERROR: export_frames API not found in header."
-            exit 1
-          fi
-
-          if ! grep -q \
-            'export_frames' \
-            plugins/video_exporter/video_exporter.mm
-          then
-            echo "ERROR: export_frames implementation not found."
-            exit 1
-          fi
-
-          echo "OK: export_frames API."
-
-
-          echo ""
-          echo "======================================"
-          echo "VERIFY SINGLETON"
-          echo "======================================"
-
-          if ! grep -q \
-            'register_singleton' \
-            plugins/video_exporter/video_exporter.mm
-          then
-            echo "ERROR: register_singleton not found."
-            exit 1
-          fi
-
-          if ! grep -q \
-            '"VideoExporter"' \
-            plugins/video_exporter/video_exporter.mm
-          then
-            echo "ERROR: VideoExporter singleton name not found."
-            exit 1
-          fi
-
-          echo "OK: VideoExporter singleton registration detected."
+          echo "OK: GDIP"
 
 
           echo ""
@@ -1011,24 +748,16 @@ jobs:
           echo "VALIDATION COMPLETE"
           echo "======================================"
 
+          echo "OK: VideoExporter"
+          echo "OK: H.264"
+          echo "OK: AVAssetWriter"
+          echo "OK: AVAssetWriterInputPixelBufferAdaptor"
           echo "OK: Release XCFramework"
           echo "OK: Debug XCFramework"
-          echo "OK: AVFoundation.framework"
-          echo "OK: CoreGraphics.framework"
-          echo "OK: CoreMedia.framework"
-          echo "OK: CoreVideo.framework"
-          echo "OK: UIKit.framework"
-          echo "OK: VideoExporter initialization"
-          echo "OK: VideoExporter deinitialization"
-          echo "OK: AVAssetWriter"
-          echo "OK: H.264"
-          echo "OK: CVPixelBuffer"
-          echo "OK: export_frames API"
-          echo "OK: singleton"
 
 
       # ==========================================================
-      # 15. CRIAR PACOTE PARA O FLUXUS
+      # 20. CRIAR PACOTE
       # ==========================================================
 
       - name: Package VideoExporter
@@ -1037,9 +766,11 @@ jobs:
 
           cd godot-ios-plugins
 
-          rm -rf ../VideoExporter-Godot-4.6.3
+          rm -rf \
+            ../VideoExporter-Godot-4.6.3
 
-          mkdir -p ../VideoExporter-Godot-4.6.3
+          mkdir -p \
+            ../VideoExporter-Godot-4.6.3
 
           cp -R \
             bin/video_exporter.release.xcframework \
@@ -1053,10 +784,13 @@ jobs:
             plugins/video_exporter/video_exporter.gdip \
             ../VideoExporter-Godot-4.6.3/
 
+          cp \
+            plugins/video_exporter/video_exporter.h \
+            ../VideoExporter-Godot-4.6.3/
 
           cat > ../VideoExporter-Godot-4.6.3/BUILD_INFO.txt << EOF
           ==========================================
-          Fluxus VideoExporter Plugin
+          VideoExporter - Godot 4.6.3
           ==========================================
 
           Plugin:
@@ -1068,8 +802,23 @@ jobs:
           Container:
           MPEG-4
 
-          Video Codec:
+          Codec:
           H.264
+
+          Input:
+          PNG frame sequence
+
+          Output:
+          MP4
+
+          API:
+          export_frames(frames_directory, output_path, fps)
+
+          Godot:
+          4.6.3-stable
+
+          iOS Deployment Target:
+          15.0
 
           Frameworks:
           AVFoundation.framework
@@ -1078,55 +827,16 @@ jobs:
           CoreVideo.framework
           UIKit.framework
 
-          Godot:
-          4.6.3-stable
-
-          Godot iOS Plugins commit:
-          2d94399
-
-          Repository:
-          https://github.com/godot-sdk-integrations/godot-ios-plugins
-
-          Custom Fluxus source:
-          plugins/video_exporter
-
-          Input:
-          PNG frame sequence
-
-          Expected frame naming:
-          frame_00000.png
-          frame_00001.png
-          frame_00002.png
-
-          Output:
-          MP4
-
-          API:
-          export_frames(
-            frames_directory,
-            output_path,
-            fps
-          )
-
-          Camera:
-          Not used
-
-          Photo Library:
-          Not used by VideoExporter
+          Architectures:
+          arm64 device
+          arm64 simulator
+          x86_64 simulator
 
           Build:
           GitHub Actions
 
           Runner:
           macos-15-intel
-
-          Architectures:
-          arm64 device
-          arm64 simulator
-          x86_64 simulator
-
-          iOS Deployment Target:
-          15.0
 
           Generated:
           $(date -u)
@@ -1136,7 +846,7 @@ jobs:
 
 
       # ==========================================================
-      # 16. MOSTRAR PACOTE
+      # 21. MOSTRAR PACOTE
       # ==========================================================
 
       - name: Show package
@@ -1146,7 +856,8 @@ jobs:
           echo "FINAL PACKAGE"
           echo "======================================"
 
-          find VideoExporter-Godot-4.6.3 \
+          find \
+            VideoExporter-Godot-4.6.3 \
             -maxdepth 2 \
             -print
 
@@ -1155,11 +866,12 @@ jobs:
           echo "PACKAGE SIZE"
           echo "======================================"
 
-          du -sh VideoExporter-Godot-4.6.3
+          du -sh \
+            VideoExporter-Godot-4.6.3
 
 
       # ==========================================================
-      # 17. CRIAR ZIP
+      # 22. CRIAR ZIP
       # ==========================================================
 
       - name: Create ZIP
@@ -1171,7 +883,7 @@ jobs:
 
 
       # ==========================================================
-      # 18. PUBLICAR ARTIFACT NO GITHUB ACTIONS
+      # 23. PUBLICAR ARTIFACT
       # ==========================================================
 
       - name: Upload VideoExporter artifact
