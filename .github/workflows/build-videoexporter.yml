@@ -499,7 +499,7 @@ jobs:
 
 
       # ==========================================================
-      # 11.  Foi excluído : GERAR HEADERS GODOT
+      # 11.   GERAR HEADERS GODOT
       # ==========================================================
       - name: Inspect Godot C++ headers
         shell: bash
@@ -533,6 +533,39 @@ jobs:
             '^#include' \
             plugins/photo_picker \
             || true
+
+
+          - name: Inspect Godot headers for VideoExporter
+            run: |
+              cd godot-ios-plugins
+          
+              echo "===== godot_cpp ====="
+              find . -path '*godot_cpp*' | head -50
+          
+              echo "===== Object ====="
+              find godot -path '*object.h' -o -path '*object.hpp'
+          
+              echo "===== Engine ====="
+              find godot -path '*engine.h' -o -path '*engine.hpp'
+          
+              echo "===== ClassDB ====="
+              find godot -path '*class_db.h' -o -path '*class_db.hpp'
+          
+              echo "===== Memory ====="
+              find godot -path '*memory.h' -o -path '*memory.hpp'
+          
+              echo "===== String ====="
+              find godot -path '*ustring.h' -o -path '*string.h'
+          
+              echo "===== GDCLASS ====="
+              grep -R "#define GDCLASS" godot/core 2>/dev/null | head -10
+          
+              echo "===== GDREGISTER_CLASS ====="
+              grep -R "#define GDREGISTER_CLASS" godot/core 2>/dev/null | head -10
+          
+              echo "===== register_singleton ====="
+              grep -R "register_singleton" godot/core/engine.h godot/core 2>/dev/null | head -20
+            
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
       # ==========================================================
