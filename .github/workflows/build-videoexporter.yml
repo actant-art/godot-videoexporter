@@ -566,24 +566,27 @@ jobs:
           echo "===== register_singleton ====="
           grep -R "register_singleton" godot/core/engine.h godot/core 2>/dev/null | head -20
 
-      - name: Inspect Godot registration APIs
+      - name: Inspect Godot plugin registration
         run: |
           cd godot-ios-plugins
       
-          echo "===== GDREGISTER_CLASS ====="
-          grep -R -n "GDREGISTER_CLASS" godot 2>/dev/null | head -20
+          echo "===== PhotoPicker module ====="
+          sed -n '1,220p' plugins/photo_picker/photo_picker_module.cpp
       
-          echo "===== memnew ====="
-          grep -R -n "memnew" godot/core/object godot/core/os 2>/dev/null | head -20
+          echo "===== PhotoPicker module header ====="
+          sed -n '1,180p' plugins/photo_picker/photo_picker_module.h
       
-          echo "===== memdelete ====="
-          grep -R -n "memdelete" godot/core/object godot/core/os 2>/dev/null | head -20
+          echo "===== Engine singleton references ====="
+          grep -R -n "register_singleton" godot plugins 2>/dev/null | head -30 || true
       
-          echo "===== register_singleton declaration ====="
-          grep -n -A5 -B5 "register_singleton" godot/core/engine.h
+          echo "===== unregister_singleton references ====="
+          grep -R -n "unregister_singleton" godot plugins 2>/dev/null | head -30 || true
       
-          echo "===== unregister_singleton declaration ====="
-          grep -n -A5 -B5 "unregister_singleton" godot/core/engine.h
+          echo "===== GDREGISTER references ====="
+          grep -R -n "GDREGISTER" godot plugins 2>/dev/null | head -30 || true
+      
+          echo "===== ClassDB references ====="
+          grep -R -n "ClassDB::bind_method" plugins/photo_picker godot 2>/dev/null | head -30 || true
             
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
