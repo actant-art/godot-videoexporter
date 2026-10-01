@@ -499,19 +499,8 @@ jobs:
 
 
       # ==========================================================
-      # 11. GERAR HEADERS GODOT
+      # 11.  Foi excluído : GERAR HEADERS GODOT
       # ==========================================================
-
-
-      - name: Build Godot iOS headers
-        run: |
-          cd godot-ios-plugins/godot
-
-          scons \
-            platform=ios \
-            target=debug \
-            ios_deployment_target=15.0
-
 
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
