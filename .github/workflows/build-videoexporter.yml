@@ -587,6 +587,23 @@ jobs:
       
           echo "===== ClassDB references ====="
           grep -R -n "ClassDB::bind_method" plugins/photo_picker godot 2>/dev/null | head -30 || true
+
+
+      - name: Inspect platform_config.h
+        run: |
+          cd godot-ios-plugins
+      
+          echo "===== platform_config.h ====="
+          find . \( -name "platform_config.h" -o -name "platform_config.h.*" \) -print
+      
+          echo "===== typedefs.h ====="
+          sed -n '1,70p' godot/core/typedefs.h
+      
+          echo "===== SConstruct platform_config ====="
+          grep -R -n "platform_config" SConstruct SCons* godot 2>/dev/null | head -50 || true
+      
+          echo "===== generated headers ====="
+          find . -type d \( -name "generated" -o -name "gen" \) -print | head -30
             
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
