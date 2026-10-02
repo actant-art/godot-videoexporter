@@ -958,13 +958,17 @@ void godot_video_exporter_init() {
 	VideoExporter *video_exporter =
 			memnew(VideoExporter);
 
-	(void)video_exporter;
+	Engine::get_singleton()->add_singleton(
+			Engine::Singleton(
+					"VideoExporter",
+					video_exporter));
 }
 
 
 /*************************************************************************/
 /* Godot iOS plugin deinitialization                                     */
 /*************************************************************************/
+
 
 void godot_video_exporter_deinit() {
 
@@ -973,7 +977,7 @@ void godot_video_exporter_deinit() {
 
 	if (video_exporter != nullptr) {
 
-		memdelete(
-				video_exporter);
+		memdelete(video_exporter);
 	}
 }
+
