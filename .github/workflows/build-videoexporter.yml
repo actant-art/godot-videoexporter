@@ -549,7 +549,30 @@ jobs:
           echo "======================================"
 
           sed -n '1,260p' scripts/generate_xcframework.sh
+      - name: Inspect Godot binder generator
+        shell: bash
+        run: |
+          cd godot-ios-plugins/godot
 
+          echo "======================================"
+          echo "MAKE BINDERS"
+          echo "======================================"
+
+          ls -l core/make_binders.py
+
+          echo ""
+          echo "======================================"
+          echo "MAKE BINDERS FUNCTIONS"
+          echo "======================================"
+
+          grep -n "def " core/make_binders.py | head -30
+
+          echo ""
+          echo "======================================"
+          echo "CORE SCsub BINDER GENERATION"
+          echo "======================================"
+
+          grep -n -A5 -B3 "method_bind.gen.inc" core/SCsub
     
       # ==========================================================
       # 11. GERAR HEADERS GODOT
