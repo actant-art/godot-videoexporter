@@ -526,6 +526,30 @@ jobs:
           echo "======================================"
 
           sed -n '145,165p' SConstruct
+
+
+      # ==========================================================
+      # DEBUG - INSPECIONAR GODOT IOS PLUGINS
+      # ==========================================================
+
+      - name: Inspect SConstruct and generate_xcframework
+        shell: bash
+        run: |
+          cd godot-ios-plugins
+
+          echo "======================================"
+          echo "SConstruct"
+          echo "======================================"
+
+          sed -n '1,260p' SConstruct
+
+          echo ""
+          echo "======================================"
+          echo "generate_xcframework.sh"
+          echo "======================================"
+
+          sed -n '1,260p' scripts/generate_xcframework.sh
+
     
       # ==========================================================
       # 11. GERAR HEADERS GODOT
