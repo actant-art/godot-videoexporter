@@ -418,20 +418,27 @@ jobs:
             echo "OK: $symbol"
           done
 
-
           echo ""
           echo "======================================"
           echo "VERIFY SINGLETON"
           echo "======================================"
-
+          
           grep -q \
-            'register_singleton' \
+            'add_singleton' \
             plugins/video_exporter/video_exporter.mm \
             || {
-              echo "ERROR: register_singleton missing."
+              echo "ERROR: add_singleton missing."
               exit 1
             }
-
+          
+          grep -q \
+            'remove_singleton' \
+            plugins/video_exporter/video_exporter.mm \
+            || {
+              echo "ERROR: remove_singleton missing."
+              exit 1
+            }
+          
           grep -q \
             '"VideoExporter"' \
             plugins/video_exporter/video_exporter.mm \
@@ -439,10 +446,8 @@ jobs:
               echo "ERROR: VideoExporter singleton missing."
               exit 1
             }
-
+          
           echo "OK: singleton"
-
-
       # ==========================================================
       # 10. AJUSTAR IOS DEPLOYMENT TARGET
       # ==========================================================
