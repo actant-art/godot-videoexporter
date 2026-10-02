@@ -527,7 +527,6 @@ jobs:
 
           sed -n '145,165p' SConstruct
     
-            
       # ==========================================================
       # 11. GERAR HEADERS GODOT
       # ==========================================================
@@ -543,7 +542,7 @@ jobs:
 
           scons \
             platform=ios \
-            target=editor
+            target=release
 
           echo ""
           echo "======================================"
@@ -552,8 +551,8 @@ jobs:
 
           find . \
             -name "method_bind.gen.inc" \
-            -print
-
+            -print            
+  
             
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
