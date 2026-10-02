@@ -575,30 +575,34 @@ jobs:
           grep -n -A5 -B3 "method_bind.gen.inc" core/SCsub
     
       # ==========================================================
-      # 11. GERAR HEADERS GODOT
+      # 11. GERAR SOMENTE METHOD BINDERS
       # ==========================================================
 
-      - name: Generate Godot 4.6.3 headers
+      - name: Generate Godot method binders
         shell: bash
         run: |
           cd godot-ios-plugins/godot
 
           echo "======================================"
-          echo "GENERATING GODOT 4.6.3 HEADERS"
+          echo "GENERATING METHOD BINDERS"
           echo "======================================"
 
           scons \
             platform=ios \
-            target=release
+            target=release \
+            core/method_bind.gen.inc \
+            core/method_bind_ext.gen.inc \
+            core/method_bind_free_func.gen.inc
 
           echo ""
           echo "======================================"
-          echo "VERIFY method_bind.gen.inc"
+          echo "VERIFY GENERATED FILES"
           echo "======================================"
 
-          find . \
-            -name "method_bind.gen.inc" \
-            -print            
+          ls -lh \
+            core/method_bind.gen.inc \
+            core/method_bind_ext.gen.inc \
+            core/method_bind_free_func.gen.inc        
   
             
       # ==========================================================
