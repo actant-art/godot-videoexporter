@@ -659,6 +659,37 @@ jobs:
           echo "===== SConstruct linhas 140-175 ====="
           sed -n '140,175p' SConstruct
 
+
+      - name: Locate generated Godot headers
+        shell: bash
+        run: |
+          cd godot-ios-plugins
+
+          echo "======================================"
+          echo "SEARCH method_bind.gen.inc"
+          echo "======================================"
+
+          find . \
+            -name "method_bind.gen.inc" \
+            -print
+
+          echo ""
+          echo "======================================"
+          echo "SEARCH GENERATED FILES"
+          echo "======================================"
+
+          find godot \
+            -type f \
+            \( -name "*.gen.inc" -o -name "*generated*" \) \
+            -print | head -100
+
+          echo ""
+          echo "======================================"
+          echo "METHOD_BIND.H"
+          echo "======================================"
+
+          sed -n '360,395p' godot/core/method_bind.h
+
             
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
