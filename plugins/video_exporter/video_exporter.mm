@@ -19,7 +19,7 @@
 /* Singleton                                                             */
 /*************************************************************************/
 
-VideoExporter *VideoExporter::singleton = nullptr;
+VideoExporter *instance = NULL;
 
 
 VideoExporter *VideoExporter::get_singleton() {
@@ -32,16 +32,12 @@ VideoExporter *VideoExporter::get_singleton() {
 /*************************************************************************/
 
 VideoExporter::VideoExporter() {
-	ERR_FAIL_COND(singleton != nullptr);
-
-	singleton = this;
+	instance = this;
 }
 
 
 VideoExporter::~VideoExporter() {
-	if (singleton == this) {
-		singleton = nullptr;
-	}
+	instance = NULL;
 }
 
 
@@ -959,16 +955,10 @@ bool VideoExporter::export_frames(
 
 void godot_video_exporter_init() {
 
-	GDREGISTER_CLASS(VideoExporter);
-
 	VideoExporter *video_exporter =
 			memnew(VideoExporter);
 
-	Engine::get_singleton()->add_singleton(
-			Engine::Singleton(
-					"VideoExporter",
-					video_exporter,
-					"VideoExporter"));
+	(void)video_exporter;
 }
 
 
@@ -978,17 +968,12 @@ void godot_video_exporter_init() {
 
 void godot_video_exporter_deinit() {
 
-	Engine *engine =
-			Engine::get_singleton();
-
 	VideoExporter *video_exporter =
 			VideoExporter::get_singleton();
 
-	if (engine->has_singleton("VideoExporter")) {
-		engine->remove_singleton("VideoExporter");
-	}
-
 	if (video_exporter != nullptr) {
-		memdelete(video_exporter);
+
+		memdelete(
+				video_exporter);
 	}
 }
