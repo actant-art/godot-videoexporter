@@ -184,7 +184,7 @@ bool VideoExporter::export_frames(
 	/* Validate parameters                                                   */
 	/*************************************************************************/
 
-	if (frames_directory.is_empty()) {
+	if (frames_directory.length() == 0) {
 
 		ERR_PRINT(
 				"VideoExporter: frames directory is empty.");
@@ -192,7 +192,7 @@ bool VideoExporter::export_frames(
 		return false;
 	}
 
-	if (output_path.is_empty()) {
+	if (output_path.length() == 0) {
 
 		ERR_PRINT(
 				"VideoExporter: output path is empty.");
@@ -959,17 +959,16 @@ bool VideoExporter::export_frames(
 
 void godot_video_exporter_init() {
 
-	GDREGISTER_CLASS(
-			VideoExporter);
-
+	GDREGISTER_CLASS(VideoExporter);
 
 	VideoExporter *video_exporter =
 			memnew(VideoExporter);
 
-
-	Engine::get_singleton()->register_singleton(
-			"VideoExporter",
-			video_exporter);
+	Engine::get_singleton()->add_singleton(
+			Engine::Singleton(
+					"VideoExporter",
+					video_exporter,
+					"VideoExporter"));
 }
 
 
@@ -982,28 +981,14 @@ void godot_video_exporter_deinit() {
 	Engine *engine =
 			Engine::get_singleton();
 
-
-	/*
-	 * Primeiro removemos o singleton do Engine.
-	 */
-	if (engine->has_singleton(
-			"VideoExporter")) {
-
-		engine->unregister_singleton(
-				"VideoExporter");
-	}
-
-
-	/*
-	 * Depois liberamos o objeto.
-	 */
 	VideoExporter *video_exporter =
 			VideoExporter::get_singleton();
 
+	if (engine->has_singleton("VideoExporter")) {
+		engine->remove_singleton("VideoExporter");
+	}
 
 	if (video_exporter != nullptr) {
-
-		memdelete(
-				video_exporter);
+		memdelete(video_exporter);
 	}
 }
