@@ -424,30 +424,47 @@ jobs:
           echo "======================================"
           
           grep -q \
-            'add_singleton' \
+            'VideoExporter \*instance = NULL' \
             plugins/video_exporter/video_exporter.mm \
             || {
-              echo "ERROR: add_singleton missing."
+              echo "ERROR: VideoExporter instance missing."
               exit 1
             }
           
           grep -q \
-            'remove_singleton' \
+            'VideoExporter::get_singleton()' \
             plugins/video_exporter/video_exporter.mm \
             || {
-              echo "ERROR: remove_singleton missing."
+              echo "ERROR: get_singleton missing."
               exit 1
             }
           
           grep -q \
-            '"VideoExporter"' \
+            'return instance;' \
             plugins/video_exporter/video_exporter.mm \
             || {
-              echo "ERROR: VideoExporter singleton missing."
+              echo "ERROR: get_singleton does not return instance."
+              exit 1
+            }
+          
+          grep -q \
+            'instance = this;' \
+            plugins/video_exporter/video_exporter.mm \
+            || {
+              echo "ERROR: constructor does not set instance."
+              exit 1
+            }
+          
+          grep -q \
+            'instance = NULL;' \
+            plugins/video_exporter/video_exporter.mm \
+            || {
+              echo "ERROR: destructor does not clear instance."
               exit 1
             }
           
           echo "OK: singleton"
+
       # ==========================================================
       # 10. AJUSTAR IOS DEPLOYMENT TARGET
       # ==========================================================
