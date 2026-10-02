@@ -603,8 +603,7 @@ jobs:
             core/method_bind.gen.inc \
             core/method_bind_ext.gen.inc \
             core/method_bind_free_func.gen.inc        
-  
-            
+
       # ==========================================================
       # 12. BUILD RELEASE DEVICE
       # ==========================================================
@@ -621,8 +620,7 @@ jobs:
             version=4.0 \
             ios_deployment_target=15.0 \
             custom_cppflags="-Igodot/platform/iphone"
-
-
+     
       # ==========================================================
       # 13. BUILD RELEASE SIMULATOR X86_64
       # ==========================================================
