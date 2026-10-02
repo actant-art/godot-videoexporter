@@ -23,7 +23,7 @@ VideoExporter *instance = NULL;
 
 
 VideoExporter *VideoExporter::get_singleton() {
-	return singleton;
+	return instance;
 }
 
 
