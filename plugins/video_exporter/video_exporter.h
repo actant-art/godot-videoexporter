@@ -7,7 +7,6 @@
 class VideoExporter : public Object {
 	GDCLASS(VideoExporter, Object);
 
-	static VideoExporter *singleton;
 
 protected:
 	static void _bind_methods();
